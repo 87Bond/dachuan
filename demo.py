@@ -252,24 +252,44 @@ def resize_h(h, img1, img2):
 is_t2i = 'true'
 
 # 读取 description.txt 文件
-def load_description_from_txt():
-    #modelscope_cache = os.getenv('MODELSCOPE_CACHE')
-    #if modelscope_cache is None:
-    txt_path = model_folder+"description.txt"  # 假设文件位于当前目录
-    #else:
-    #    txt_path = modelscope_cache+"iic/cv_anytext_text_generation_editing/anytext/configuration.json"#后面要改configuration,这里暂时这样
+def load_description_from_json():
+    """
+    从环境变量 MODELSCOPE_CACHE 中读取配置文件路径，并加载 description 字段。
+    """
+    # 获取环境变量 MODELSCOPE_CACHE
+    modelscope_cache = os.getenv('MODELSCOPE_CACHE')
+    
+    # 如果环境变量未设置，使用默认路径
+    if modelscope_cache is not None:
+        json_path = model_folder
+        json_path = os.path.join(json_path, "iic/cv_anytext_text_generation_editing/configuration.json")
+        print(f"环境变量 MODELSCOPE_CACHE 未设置，使用默认路径: {json_path}")
+    else:
+        # 拼接完整的 JSON 文件路径
+        json_path = os.path.join(modelscope_cache, "iic/cv_anytext_text_generation_editing/configuration.json")
+        print(f"从环境变量 MODELSCOPE_CACHE 构建路径: {json_path}")
+    
     try:
-        with open(txt_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()#后面改成json处理逻辑
-            return [line.strip() for line in lines]  # 读取文件内容并去除多余空白
+        # 尝试打开并读取 JSON 文件
+        with open(json_path, "r", encoding="utf-8") as file:
+            config_data = json.load(file)
+        
+        # 提取 description 字段
+        description_tags = config_data.get("description", [])
+        if not isinstance(description_tags, list):
+            description_tags = [description_tags]  # 确保结果为列表
+        
+        return description_tags
+    
     except FileNotFoundError:
         return ["Description file not found."]
+    except json.JSONDecodeError:
+        return ["Failed to parse JSON file."]
     except Exception as e:
         return [f"Error reading description file: {str(e)}"]
 
-# 加载描述信息
-description_tags = load_description_from_txt()
-
+# 测试加载描述信息
+description_tags = load_description_from_json()
 
 
 block = gr.Blocks(css='style.css', theme=gr.themes.Soft()).queue()
@@ -286,7 +306,8 @@ with block:
                script.appendChild(text);
                document.head.appendChild(script);
                }}""")
-    gr.HTML('<div style="text-align: center; margin: 20px auto;"> \
+    gr.Markdown('<div style="text-align: center; margin: 30px auto; padding: 15px; font-size: 24px; font-weight: bold; \
+            background-color: #624AFF; color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);"> \
             基于生成式AI的个性化文创图像作品设计 </div>')
     with gr.Row(variant='compact'):
         with gr.Column() as left_part:
@@ -406,7 +427,7 @@ with block:
                         gr.Markdown("")
                     def exp_gen_click():
                         return [gr.Slider(value=512), gr.Slider(value=512)]  # all examples are 512x512, refresh draw_img
-                    with gr.Tab("中文示例"):
+                    with gr.Tab("示例"):
                         exp_gen_ch = gr.Examples(
                             [
                                 ['一只浣熊站在黑板前，上面写着"深度学习"', "example_images/gen1.png", "Manual-draw(手绘)", "↕", False, 4, 81808278],
@@ -444,7 +465,7 @@ with block:
                         gr.Markdown("")
                         run_edit = gr.Button(value="Run(运行)!", scale=0.3, elem_classes='run')
                         gr.Markdown("")
-                    with gr.Tab("中文示例"):
+                    with gr.Tab("示例"):
                         gr.Examples(
                             [
                                 ['精美的书法作品，上面写着“志” “存” “高” ”远“', "example_images/ref10.jpg", "example_images/edit10.png", 4, 98053044],
