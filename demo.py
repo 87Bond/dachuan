@@ -19,7 +19,7 @@ import argparse
 BBOX_MAX_NUM = 8
 img_save_folder = 'SaveImages'
 load_model = False
-model_folder = 'dreamtoooth_model/'
+model_folder = 'dreamtooth_model/'
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -260,7 +260,7 @@ def load_description_from_json():
     modelscope_cache = os.getenv('MODELSCOPE_CACHE')
     
     # 如果环境变量未设置，使用默认路径
-    if modelscope_cache is not None:
+    if modelscope_cache is None:
         json_path = model_folder
         json_path = os.path.join(json_path, "iic/cv_anytext_text_generation_editing/configuration.json")
         print(f"环境变量 MODELSCOPE_CACHE 未设置，使用默认路径: {json_path}")
@@ -306,9 +306,9 @@ with block:
                script.appendChild(text);
                document.head.appendChild(script);
                }}""")
-    gr.Markdown('<div style="text-align: center; margin: 30px auto; padding: 15px; font-size: 24px; font-weight: bold; \
-            background-color: #624AFF; color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);"> \
-            基于生成式AI的个性化文创图像作品设计 </div>')
+    gr.HTML('<div style="text-align: center; margin: 20px auto;"> \
+        <img id="banner" src="file/example_images/banner.png" alt="anytext"> <br>  \
+        </div>')
     with gr.Row(variant='compact'):
         with gr.Column() as left_part:
             pass
@@ -325,40 +325,19 @@ with block:
         with left_part:
             with gr.Accordion('🕹Instructions(说明)', open=False,):
                 with gr.Tabs():
-                    with gr.Tab("English"):
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">Run Examples</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">AnyText has two modes: Text Generation and Text Editing, and we provides a variety of examples. Select one, click on [Run!] button to run.</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">Please note, before running examples, ensure the manual draw area is empty, otherwise may get wrong results. Additionally, different examples use \
-                                     different parameters (such as resolution, seed, etc.). When generate your own, please pay attention to the parameter changes, or refresh the page to restore the default parameters.</span>')
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">Text Generation</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">Enter the textual description (in Chinese or English) of the image you want to generate in [Prompt]. Each text line that needs to be generated should be \
-                                     enclosed in double quotes. Then, manually draw the specified position for each text line to generate the image.</span>\
-                                     <span style="color:red;font-size:16px">The drawing of text positions is crucial to the quality of the resulting image</span>, \
-                                     <span style="color:#575757;font-size:16px">please do not draw too casually or too small. The number of positions should match the number of text lines, and the size of each position should be matched \
-                                     as closely as possible to the length or width of the corresponding text line. If [Manual-draw] is inconvenient, you can try dragging rectangles [Manual-rect] or random positions [Auto-rand].</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">When generating multiple lines, each position is matched with the text line according to a certain rule. The [Sort Position] option is used to \
-                                     determine whether to prioritize sorting from top to bottom or from left to right. You can open the [Show Debug] option in the parameter settings to observe the text position and glyph image \
-                                     in the result. You can also select the [Revise Position] which uses the bounding box of the rendered text as the revised position. However, it is occasionally found that the creativity of the \
-                                     generated text is slightly lower using this method.</span>')
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">Text Editing</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">Please upload an image in [Ref] as a reference image, then adjust the brush size, and mark the area(s) to be edited. Input the textual description and \
-                                     the new text to be modified in [Prompt], then generate the image.</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">The reference image can be of any resolution, but it will be internally processed with a limit that the longer side cannot exceed 768 pixels, and the \
-                                     width and height will both be scaled to multiples of 64.</span>')
-                    with gr.Tab("简体中文"):
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">运行示例</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">AnyText有两种运行模式：文字生成和文字编辑，每种模式下提供了丰富的示例，选择一个，点击[Run!]即可。</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">请注意，运行示例前确保手绘位置区域是空的，防止影响示例结果，另外不同示例使用不同的参数（如分辨率，种子数等），如果要自行生成时，请留意参数变化，或刷新页面恢复到默认参数。</span>')
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">文字生成</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">在Prompt中输入描述提示词（支持中英文），需要生成的每一行文字用双引号包裹，然后依次手绘指定每行文字的位置，生成图片。</span>\
-                                     <span style="color:red;font-size:16px">文字位置的绘制对成图质量很关键</span>, \
-                                     <span style="color:#575757;font-size:16px">请不要画的太随意或太小，位置的数量要与文字行数量一致，每个位置的尺寸要与对应的文字行的长短或宽高尽量匹配。如果手绘（Manual-draw）不方便，\
-                                     可以尝试拖框矩形（Manual-rect）或随机生成（Auto-rand）。</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">多行生成时，每个位置按照一定规则排序后与文字行做对应，Sort Position选项用于确定排序时优先从上到下还是从左到右。\
-                                     可以在参数设置中打开Show Debug选项，在结果图像中观察文字位置和字形图。也可以勾选Revise Position选项，这样会用渲染文字的外接矩形作为修正后的位置，不过偶尔发现这样生成的文字创造性略低。</span>')
-                        gr.Markdown('<span style="color:#3B5998;font-size:20px">文字编辑</span>')
-                        gr.Markdown('<span style="color:#575757;font-size:16px">请上传一张待编辑的图片作为参考图(Ref)，然后调整笔触大小后，在参考图上涂抹要编辑的位置，在Prompt中输入描述提示词和要修改的文字内容，生成图片。</span>')
-                        gr.Markdown('<span style="color:gray;font-size:12px">参考图可以为任意分辨率，但内部处理时会限制长边不能超过768，并且宽高都被缩放为64的整数倍。</span>')
+                    gr.Markdown('<span style="color:#3B5998;font-size:20px">运行示例</span>')
+                    gr.Markdown('<span style="color:#575757;font-size:16px">AnyText有两种运行模式：文字生成和文字编辑，每种模式下提供了丰富的示例，选择一个，点击[Run!]即可。</span>')
+                    gr.Markdown('<span style="color:gray;font-size:12px">请注意，运行示例前确保手绘位置区域是空的，防止影响示例结果，另外不同示例使用不同的参数（如分辨率，种子数等），如果要自行生成时，请留意参数变化，或刷新页面恢复到默认参数。</span>')
+                    gr.Markdown('<span style="color:#3B5998;font-size:20px">文字生成</span>')
+                    gr.Markdown('<span style="color:#575757;font-size:16px">在Prompt中输入描述提示词（支持中英文），需要生成的每一行文字用双引号包裹，然后依次手绘指定每行文字的位置，生成图片。</span>\
+                                    <span style="color:red;font-size:16px">文字位置的绘制对成图质量很关键</span>, \
+                                    <span style="color:#575757;font-size:16px">请不要画的太随意或太小，位置的数量要与文字行数量一致，每个位置的尺寸要与对应的文字行的长短或宽高尽量匹配。如果手绘（Manual-draw）不方便，\
+                                    可以尝试拖框矩形（Manual-rect）或随机生成（Auto-rand）。</span>')
+                    gr.Markdown('<span style="color:gray;font-size:12px">多行生成时，每个位置按照一定规则排序后与文字行做对应，Sort Position选项用于确定排序时优先从上到下还是从左到右。\
+                                    可以在参数设置中打开Show Debug选项，在结果图像中观察文字位置和字形图。也可以勾选Revise Position选项，这样会用渲染文字的外接矩形作为修正后的位置，不过偶尔发现这样生成的文字创造性略低。</span>')
+                    gr.Markdown('<span style="color:#3B5998;font-size:20px">文字编辑</span>')
+                    gr.Markdown('<span style="color:#575757;font-size:16px">请上传一张待编辑的图片作为参考图(Ref)，然后调整笔触大小后，在参考图上涂抹要编辑的位置，在Prompt中输入描述提示词和要修改的文字内容，生成图片。</span>')
+                    gr.Markdown('<span style="color:gray;font-size:12px">参考图可以为任意分辨率，但内部处理时会限制长边不能超过768，并且宽高都被缩放为64的整数倍。</span>')
             with gr.Accordion('🛠Parameters(参数)', open=False):
                 with gr.Row(variant='compact'):
                     img_count = gr.Slider(label="Image Count(图片数)", minimum=1, maximum=12, value=4, step=1)
